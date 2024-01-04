@@ -12,57 +12,45 @@ import {
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdatePutUserDto } from './dto/updatePutUser.dto';
 import { UpdatePatchUserDto } from './dto/updatePatchUser.dto';
+import { UserService } from './user.service';
+import { User } from '@prisma/client';
 
 @Controller('users')
 export class UserController {
+  constructor(private readonly userService: UserService) {}
   @Post()
-  async create(@Body() user: CreateUserDto): Promise<any> {
-    return { user };
+  async create(@Body() user: CreateUserDto): Promise<User> {
+    return await this.userService.create(user);
   }
 
   @Get()
-  async findAll() {
-    return { users: [] };
+  async list() {
+    return this.userService.list();
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    return { user: {}, id };
+  async show(@Param('id', ParseIntPipe) id: number) {
+    return await this.userService.show(id);
   }
 
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() { name, email, password }: UpdatePutUserDto,
+    @Body() data: UpdatePutUserDto,
   ) {
-    return {
-      method: 'PUT',
-      name,
-      email,
-      password,
-      id,
-    };
+    return await this.userService.update(id, data);
   }
 
   @Patch(':id')
   async updatePartial(
     @Param('id', ParseIntPipe) id: number,
-    @Body() { name, email, password }: UpdatePatchUserDto,
+    @Body() data: UpdatePatchUserDto,
   ) {
-    return {
-      method: 'PATCH',
-      name,
-      email,
-      password,
-      id,
-    };
+    return await this.userService.updatePartial(id, data);
   }
 
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {
-    return {
-      method: 'DELETE',
-      id,
-    };
+    return await this.userService.delete(id);
   }
 }
