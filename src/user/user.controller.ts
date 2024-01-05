@@ -9,15 +9,18 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/createUser.dto';
-import { UpdatePutUserDto } from './dto/updatePutUser.dto';
-import { UpdatePatchUserDto } from './dto/updatePatchUser.dto';
-import { UserService } from './user.service';
 import { User } from '@prisma/client';
+import { CreateUserDto } from './dto/createUser.dto';
+import { UpdatePatchUserDto } from './dto/updatePatchUser.dto';
+import { UpdatePutUserDto } from './dto/updatePutUser.dto';
+import { UserService } from './user.service';
+import { ParamId } from '@/decorators/paramId.decorator';
 
+// @UseInterceptors(LogInterceptor)
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
   @Post()
   async create(@Body() user: CreateUserDto): Promise<User> {
     return await this.userService.create(user);
@@ -29,23 +32,18 @@ export class UserController {
   }
 
   @Get(':id')
-  async show(@Param('id', ParseIntPipe) id: number) {
+  async show(@ParamId() id: number) {
+    console.log({ id });
     return await this.userService.show(id);
   }
 
   @Put(':id')
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() data: UpdatePutUserDto,
-  ) {
+  async update(@ParamId() id: number, @Body() data: UpdatePutUserDto) {
     return await this.userService.update(id, data);
   }
 
   @Patch(':id')
-  async updatePartial(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() data: UpdatePatchUserDto,
-  ) {
+  async updatePartial(@ParamId() id: number, @Body() data: UpdatePatchUserDto) {
     return await this.userService.updatePartial(id, data);
   }
 

@@ -29,6 +29,7 @@ export class UserService {
     return await this.prisma.user.findFirst({ where: { email } });
   }
   async show(id: number): Promise<User | null> {
+    await this.exists(id);
     return await this.prisma.user.findUnique({ where: { id } });
   }
   async update(
@@ -63,7 +64,7 @@ export class UserService {
     return await this.prisma.user.delete({ where: { id } });
   }
   async exists(id: number) {
-    if (!(await this.show(id)))
+    if (!(await this.prisma.user.count({ where: { id } })))
       throw new NotFoundException(`Usuário (id: ${id}) não encontrado')`);
   }
 }
