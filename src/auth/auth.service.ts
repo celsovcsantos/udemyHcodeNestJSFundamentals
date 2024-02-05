@@ -1,9 +1,9 @@
 import { PrismaService } from '@/prisma/prisma.service';
+import { UserService } from '@/user/user.service';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { AuthRegisterDTO } from './dto/authRegister.dto';
-import { UserService } from '@/user/user.service';
 
 interface IToken {
   accessToken: string;
@@ -13,6 +13,9 @@ export { IToken };
 
 @Injectable()
 export class AuthService {
+  private issuer = 'login';
+  private audience = 'users';
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
@@ -31,16 +34,32 @@ export class AuthService {
         {
           expiresIn: '7 days',
           subject: user.id.toString(),
-          issuer: 'login',
-          audience: 'users',
+          issuer: this.issuer,
+          audience: this.audience,
         },
       ),
     };
   }
 
-  async checkToken() {
-    // const user = { username: 'test' };
-    // return this.jwtService.verify(user);
+  checkToken(token: string) {
+    try {
+      const data = this.jwtService.verify(token, {
+        issuer: this.issuer,
+        audience: this.audience,
+      });
+      return data;
+    } catch (error) {
+      throw new UnauthorizedException(error);
+    }
+  }
+
+  isValidToken(token: string) {
+    try {
+      this.checkToken(token);
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   async login(email: string, password: string): Promise<IToken> {
