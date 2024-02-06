@@ -12,6 +12,7 @@ import { UpdatePatchUserDto } from './dto/updatePatchUser.dto';
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
+
   async create(data: CreateUserDto): Promise<User> {
     const userExists = await this.findOne(data.email);
     if (userExists) {
@@ -22,19 +23,25 @@ export class UserService {
 
     return await this.prisma.user.create({ data });
   }
+
   async list(): Promise<User[]> {
-    return await this.prisma.user.findMany();
+    return await this.prisma.user.findMany({
+      orderBy: { id: 'asc' },
+    });
   }
+
   async findOne(email: string): Promise<User | null> {
     return await this.prisma.user.findFirst({ where: { email } });
   }
+
   async show(id: number): Promise<User | null> {
     await this.exists(id);
     return await this.prisma.user.findUnique({ where: { id } });
   }
+
   async update(
     id: number,
-    { email, name, password, birthAt }: UpdatePutUserDto,
+    { email, name, password, birthAt, role }: UpdatePutUserDto,
   ): Promise<User> {
     await this.exists(id);
     return await this.prisma.user.update({
@@ -43,13 +50,15 @@ export class UserService {
         name,
         password,
         birthAt: birthAt ? new Date(birthAt) : null,
+        role,
       },
       where: { id },
     });
   }
+
   async updatePartial(
     id: number,
-    { email, name, password, birthAt }: UpdatePatchUserDto,
+    { email, name, password, birthAt, role }: UpdatePatchUserDto,
   ): Promise<User> {
     await this.exists(id);
     const data: any = {};
@@ -57,12 +66,15 @@ export class UserService {
     if (email) data.email = email;
     if (name) data.name = name;
     if (password) data.password = password;
+    if (role) data.role = role;
     return await this.prisma.user.update({ data, where: { id } });
   }
+
   async delete(id: number): Promise<User> {
     await this.exists(id);
     return await this.prisma.user.delete({ where: { id } });
   }
+
   async exists(id: number) {
     if (!(await this.prisma.user.count({ where: { id } })))
       throw new NotFoundException(`Usuário (id: ${id}) não encontrado')`);
