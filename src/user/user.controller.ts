@@ -23,19 +23,19 @@ import { LogInterceptor } from '@/interceptors/log.interceptor';
 import { RoleGuard } from '@/guards/role.guard';
 import { AuthGuard } from '@/guards/auth.guard';
 
+@Roles(Role.Admin)
 @UseGuards(AuthGuard, RoleGuard)
 @UseInterceptors(LogInterceptor)
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Roles(Role.Admin)
   @Post()
   async create(@Body() user: CreateUserDto): Promise<User> {
     return await this.userService.create(user);
   }
 
-  @Roles(Role.Admin)
+  //@Roles(Role.User)
   @Get()
   async list() {
     return this.userService.list();
@@ -48,19 +48,16 @@ export class UserController {
     return await this.userService.show(id);
   }
 
-  @Roles(Role.Admin)
   @Put(':id')
   async update(@ParamId() id: number, @Body() data: UpdatePutUserDto) {
     return await this.userService.update(id, data);
   }
 
-  @Roles(Role.Admin)
   @Patch(':id')
   async updatePartial(@ParamId() id: number, @Body() data: UpdatePatchUserDto) {
     return await this.userService.updatePartial(id, data);
   }
 
-  @Roles(Role.Admin)
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {
     return await this.userService.delete(id);
