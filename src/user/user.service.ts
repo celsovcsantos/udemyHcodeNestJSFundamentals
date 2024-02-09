@@ -8,12 +8,16 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { User } from '@prisma/client';
 import { UpdatePutUserDto } from './dto/updatePutUser.dto';
 import { UpdatePatchUserDto } from './dto/updatePatchUser.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateUserDto): Promise<User> {
+    const salt = await bcrypt.genSalt();
+    data.password = await bcrypt.hash(data.password, salt);
+
     const userExists = await this.findOne(data.email);
     if (userExists) {
       throw new NotAcceptableException(
@@ -44,6 +48,10 @@ export class UserService {
     { email, name, password, birthAt, role }: UpdatePutUserDto,
   ): Promise<User> {
     await this.exists(id);
+
+    const salt = await bcrypt.genSalt();
+    password = await bcrypt.hash(password, salt);
+
     return await this.prisma.user.update({
       data: {
         email,
@@ -65,7 +73,10 @@ export class UserService {
     if (birthAt) data.birthAt = new Date(birthAt);
     if (email) data.email = email;
     if (name) data.name = name;
-    if (password) data.password = password;
+    if (password) {
+      const salt = await bcrypt.genSalt();
+      data.password = await bcrypt.hash(password, salt);
+    }
     if (role) data.role = role;
     return await this.prisma.user.update({ data, where: { id } });
   }

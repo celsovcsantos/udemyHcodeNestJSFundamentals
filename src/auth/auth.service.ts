@@ -4,6 +4,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { AuthRegisterDTO } from './dto/authRegister.dto';
+import * as bcrypt from 'bcrypt';
 
 interface IToken {
   accessToken: string;
@@ -66,12 +67,14 @@ export class AuthService {
     const user = await this.prisma.user.findFirst({
       where: {
         email,
-        password,
       },
     });
     if (!user) {
       throw new UnauthorizedException('Email e/ou senha incorretos.');
     }
+
+    if (!(await bcrypt.compare(password, user.password)))
+      throw new UnauthorizedException('Email e/ou senha incorretos.');
     return this.createToken(user);
   }
 
