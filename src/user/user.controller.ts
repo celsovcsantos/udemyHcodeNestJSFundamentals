@@ -1,3 +1,9 @@
+import { ParamId } from '@/decorators/paramId.decorator';
+import { Roles } from '@/decorators/roles.decorator';
+import { Role } from '@/enums/role.enum';
+import { AuthGuard } from '@/guards/auth.guard';
+import { RoleGuard } from '@/guards/role.guard';
+import { LogInterceptor } from '@/interceptors/log.interceptor';
 import {
   Body,
   Controller,
@@ -16,12 +22,6 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { UpdatePatchUserDto } from './dto/updatePatchUser.dto';
 import { UpdatePutUserDto } from './dto/updatePutUser.dto';
 import { UserService } from './user.service';
-import { ParamId } from '@/decorators/paramId.decorator';
-import { Roles } from '@/decorators/roles.decorator';
-import { Role } from '@/enums/role.enum';
-import { LogInterceptor } from '@/interceptors/log.interceptor';
-import { RoleGuard } from '@/guards/role.guard';
-import { AuthGuard } from '@/guards/auth.guard';
 
 @Roles(Role.Admin)
 @UseGuards(AuthGuard, RoleGuard)
