@@ -25,6 +25,6 @@ services:
       POSTGRES_PASSWORD: 123456
       POSTGRES_DB: api
     ports:
-      - 5432:5432 #local:container - no local costuma adicionar um 0 (zero) no final da porta para não conflitar com o banco local
+      - 5433:5433 #local:container - no local costuma adicionar um 0 (zero) no final da porta para não conflitar com o banco local
     volumes:
       - ./.docker/dbdata:/var/lib/postgresql/data
