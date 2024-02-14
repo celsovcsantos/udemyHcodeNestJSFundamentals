@@ -72,7 +72,7 @@ export class AuthService {
       },
     });
     if (!user) {
-      throw new UnauthorizedException('Email e/ou senha incorretos.');
+      throw new UnauthorizedException('Email e/ou senha incorretos. teste git');
     }
 
     if (!(await bcrypt.compare(password, user.password)))
