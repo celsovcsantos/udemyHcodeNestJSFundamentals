@@ -5,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { AuthRegisterDTO } from './dto/authRegister.dto';
 import * as bcrypt from 'bcrypt';
+import { MailerService } from '@nestjs-modules/mailer';
 
 interface IToken {
   accessToken: string;
@@ -21,6 +22,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
     private readonly userService: UserService,
+    private readonly mailer: MailerService,
   ) {}
 
   async createToken(user: User) {
@@ -85,17 +87,53 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Email incorreto.');
     }
+
+    const token = this.jwtService.sign(
+      {
+        id: user.id,
+      },
+      {
+        expiresIn: '30 minutes',
+        subject: user.id.toString(),
+        issuer: 'forget',
+        audience: this.audience,
+      },
+    );
+
+    await this.mailer.sendMail({
+      to: user.email,
+      subject: 'Recuperação de senha',
+      template: 'forget',
+      context: {
+        name: user.name,
+        token,
+      },
+    });
+
     return true;
   }
 
   async reset(password: string, token: string): Promise<IToken> {
     //validar o token
-    const id = 0;
-    const user = await this.prisma.user.update({
-      where: { id },
-      data: { password },
-    });
-    return this.createToken(user);
+
+    try {
+      const { id } = this.jwtService.verify(token, {
+        issuer: 'forget',
+        audience: this.audience,
+      });
+
+      if (isNaN(id)) throw new UnauthorizedException('Token inválido.');
+
+      password = await this.userService.createHashPassword(password);
+
+      const user = await this.prisma.user.update({
+        where: { id },
+        data: { password },
+      });
+      return this.createToken(user);
+    } catch (error) {
+      throw new UnauthorizedException(error);
+    }
   }
 
   async register(data: AuthRegisterDTO) {
