@@ -17,11 +17,11 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdatePatchUserDto } from './dto/updatePatchUser.dto';
 import { UpdatePutUserDto } from './dto/updatePutUser.dto';
 import { UserService } from './user.service';
+import { UserEntity } from './entity/user.entity';
 
 @Roles(Role.Admin)
 @UseGuards(AuthGuard, RoleGuard)
@@ -31,7 +31,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  async create(@Body() user: CreateUserDto): Promise<User> {
+  async create(@Body() user: CreateUserDto): Promise<UserEntity> {
     return await this.userService.create(user);
   }
 

@@ -1,11 +1,16 @@
-import { PrismaService } from '@/prisma/prisma.service';
+import { UserEntity } from '@/user/entity/user.entity';
 import { UserService } from '@/user/user.service';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
-import { AuthRegisterDTO } from './dto/authRegister.dto';
-import * as bcrypt from 'bcrypt';
 import { MailerService } from '@nestjs-modules/mailer';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
+import { AuthRegisterDTO } from './dto/authRegister.dto';
 
 interface IToken {
   accessToken: string;
@@ -20,12 +25,13 @@ export class AuthService {
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly prisma: PrismaService,
     private readonly userService: UserService,
     private readonly mailer: MailerService,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
   ) {}
 
-  async createToken(user: User) {
+  async createToken(user: UserEntity) {
     // const user = { username: 'test' };
     return {
       accessToken: this.jwtService.sign(
@@ -66,13 +72,12 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<IToken> {
-    const user = await this.prisma.user.findFirst({
-      where: {
-        email,
-      },
+    const user = await this.userRepository.findOne({
+      where: { email },
     });
+    //console.log({ user });
     if (!user) {
-      throw new UnauthorizedException('Email e/ou senha incorretos. teste git');
+      throw new UnauthorizedException('Email e/ou senha incorretos.');
     }
 
     if (!(await bcrypt.compare(password, user.password)))
@@ -81,7 +86,7 @@ export class AuthService {
   }
 
   async forget(email: string): Promise<boolean> {
-    const user = await this.prisma.user.findFirst({
+    const user = await this.userRepository.findOne({
       where: { email },
     });
     if (!user) {
@@ -126,10 +131,9 @@ export class AuthService {
 
       password = await this.userService.createHashPassword(password);
 
-      const user = await this.prisma.user.update({
-        where: { id },
-        data: { password },
-      });
+      await this.userRepository.update({ id }, { password });
+      const user = await this.userService.show(id);
+      if (!user) throw new NotFoundException('Usuário não encontrado.');
       return this.createToken(user);
     } catch (error) {
       throw new UnauthorizedException(error);

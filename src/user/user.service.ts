@@ -4,43 +4,48 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/createUser.dto';
-import { PrismaService } from '@/prisma/prisma.service';
-import { User } from '@prisma/client';
 import { UpdatePutUserDto } from './dto/updatePutUser.dto';
 import { UpdatePatchUserDto } from './dto/updatePatchUser.dto';
 import * as bcrypt from 'bcrypt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserEntity } from './entity/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+  ) {}
 
-  async create(data: CreateUserDto): Promise<User> {
-    const salt = await bcrypt.genSalt();
-    data.password = await bcrypt.hash(data.password, salt);
+  async create(data: CreateUserDto): Promise<UserEntity> {
+    data.password = await this.createHashPassword(data.password);
 
-    const userExists = await this.findOne(data.email);
+    const userExists = await this.userRepository.exists({
+      where: { email: data.email },
+    });
     if (userExists) {
       throw new NotAcceptableException(
         `Usuário (email: ${data.email}) já cadastrado`,
       );
     }
 
-    return await this.prisma.user.create({ data });
+    return await this.userRepository.save(this.userRepository.create(data));
   }
 
-  async list(): Promise<User[]> {
-    return await this.prisma.user.findMany({
-      orderBy: { id: 'asc' },
+  async list(): Promise<UserEntity[]> {
+    return await this.userRepository.find({
+      order: { id: 'asc' },
     });
   }
 
-  async findOne(email: string): Promise<User | null> {
-    return await this.prisma.user.findFirst({ where: { email } });
+  async findOne(email: string): Promise<UserEntity | null> {
+    return await this.userRepository.findOne({ where: { email } });
   }
 
-  async show(id: number): Promise<User | null> {
+  async show(id: number): Promise<UserEntity> {
     await this.exists(id);
-    return await this.prisma.user.findUnique({ where: { id } });
+    return await this.userRepository.findOneOrFail({ where: { id } });
   }
 
   async createHashPassword(password: string): Promise<string> {
@@ -51,27 +56,29 @@ export class UserService {
   async update(
     id: number,
     { email, name, password, birthAt, role }: UpdatePutUserDto,
-  ): Promise<User> {
+  ): Promise<UserEntity> {
     await this.exists(id);
 
     password = await this.createHashPassword(password);
 
-    return await this.prisma.user.update({
-      data: {
+    await this.userRepository.update(
+      { id },
+      {
         email,
         name,
         password,
-        birthAt: birthAt ? new Date(birthAt) : null,
+        birthAt: birthAt ? new Date(birthAt) : undefined,
         role,
       },
-      where: { id },
-    });
+    );
+
+    return await this.show(id);
   }
 
   async updatePartial(
     id: number,
     { email, name, password, birthAt, role }: UpdatePatchUserDto,
-  ): Promise<User> {
+  ): Promise<UserEntity> {
     await this.exists(id);
     const data: any = {};
     if (birthAt) data.birthAt = new Date(birthAt);
@@ -82,16 +89,31 @@ export class UserService {
       data.password = await bcrypt.hash(password, salt);
     }
     if (role) data.role = role;
-    return await this.prisma.user.update({ data, where: { id } });
+    await this.userRepository.update(
+      { id },
+      {
+        email,
+        name,
+        password,
+        birthAt: birthAt ? new Date(birthAt) : undefined,
+        role,
+      },
+    );
+
+    return await this.show(id);
   }
 
-  async delete(id: number): Promise<User> {
+  async delete(id: number): Promise<boolean> {
     await this.exists(id);
-    return await this.prisma.user.delete({ where: { id } });
+    const result = await this.userRepository.delete({ id });
+    if (result.affected) return true;
+    return false;
   }
 
-  async exists(id: number) {
-    if (!(await this.prisma.user.count({ where: { id } })))
+  async exists(id: number): Promise<boolean> {
+    const ret = await this.userRepository.exists({ where: { id } });
+    if (!ret)
       throw new NotFoundException(`Usuário (id: ${id}) não encontrado')`);
+    return ret;
   }
 }

@@ -1,13 +1,15 @@
+import { MailerModule } from '@nestjs-modules/mailer';
+import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { UserEntity } from './user/entity/user.entity';
 import { UserModule } from './user/user.module';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
-import { ConfigModule } from '@nestjs/config';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
 
 @Module({
   //imports: [forwardRef(() => UserModule), forwardRef(() => AuthModule)],
@@ -43,6 +45,17 @@ import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
           strict: true,
         },
       },
+    }),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT || '5432'), // Use a default port if DB_PORT is undefined
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+      entities: [UserEntity],
+      //autoLoadEntities: true,
+      synchronize: process.env.NODE_ENV === 'DEV',
     }),
   ],
   controllers: [AppController],
