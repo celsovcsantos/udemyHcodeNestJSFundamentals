@@ -105,9 +105,10 @@ export class UserService {
 
   async delete(id: number): Promise<boolean> {
     await this.exists(id);
-    const result = await this.userRepository.delete({ id });
-    if (result.affected) return true;
-    return false;
+    // const result = await this.userRepository.delete({ id });
+    // if (result.affected) return true;
+    await this.userRepository.delete({ id });
+    return true;
   }
 
   async exists(id: number): Promise<boolean> {

@@ -23,7 +23,7 @@ import { UpdatePutUserDto } from './dto/updatePutUser.dto';
 import { UserService } from './user.service';
 import { UserEntity } from './entity/user.entity';
 
-@Roles(Role.Admin)
+@Roles(Role.User) //Role.Admin)
 @UseGuards(AuthGuard, RoleGuard)
 @UseInterceptors(LogInterceptor)
 @Controller('users')
