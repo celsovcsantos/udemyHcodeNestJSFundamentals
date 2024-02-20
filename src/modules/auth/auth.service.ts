@@ -1,5 +1,5 @@
-import { UserEntity } from '@/user/entity/user.entity';
-import { UserService } from '@/user/user.service';
+import { UserEntity } from '@/modules/user/entity/user.entity';
+import { UserService } from '@/modules/user/user.service';
 import { MailerService } from '@nestjs-modules/mailer';
 import {
   Injectable,

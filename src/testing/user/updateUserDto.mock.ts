@@ -1,5 +1,5 @@
-import { Role } from '../enums/role.enum';
-import { UpdatePutUserDto } from '../user/dto/updatePutUser.dto';
+import { Role } from '../../enums/role.enum';
+import { UpdatePutUserDto } from '../../modules/user/dto/updatePutUser.dto';
 
 export const updateUserDTO: UpdatePutUserDto = {
   birthAt: '2000-01-01',
