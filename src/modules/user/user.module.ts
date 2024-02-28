@@ -1,5 +1,3 @@
-import { AuthModule } from '@/modules/auth/auth.module';
-import { UserIdCheckMiddleware } from '@/middlewares/userIdCheck.middleware';
 import {
   MiddlewareConsumer,
   Module,
@@ -11,6 +9,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './entity/user.entity';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
+import { AuthModule } from '../auth/auth.module';
+import { UserIdCheckMiddleware } from '../../middlewares/userIdCheck.middleware';
 
 @Module({
   imports: [

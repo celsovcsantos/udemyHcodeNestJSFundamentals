@@ -10,6 +10,8 @@ RUN npm install -g npm@latest
 RUN npm i -g @nestjs/cli
 RUN npm install -g pino-pretty
 
+#EXPOSE 54320
+
 #node - ID 1000 (equivale ao usuário local, por conta de permissões)
 USER node
 

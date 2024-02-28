@@ -1,6 +1,3 @@
-import { User } from '@/decorators/user.decorator';
-import { FileService } from '@/file/file.service';
-import { AuthGuard } from '@/guards/auth.guard';
 import {
   BadRequestException,
   Body,
@@ -9,6 +6,7 @@ import {
   MaxFileSizeValidator,
   ParseFilePipe,
   Post,
+  Req,
   UploadedFile,
   UploadedFiles,
   UseGuards,
@@ -25,6 +23,9 @@ import { AuthLoginDTO } from './dto/authLogin.dto';
 import { AuthRegisterDTO } from './dto/authRegister.dto';
 import { AuthResetDTO } from './dto/authReset.dto';
 import { join } from 'path';
+import { FileService } from '../file/file.service';
+import { AuthGuard } from '../../guards/auth.guard';
+import { User } from '../../decorators/user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -55,8 +56,8 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Post('me')
-  async me(@User() user: any) {
-    return { user };
+  async me(@User() user: any, @Req() { tokenPayload }: any) {
+    return { user, tokenPayload };
   }
 
   @UseInterceptors(FileInterceptor('file'))

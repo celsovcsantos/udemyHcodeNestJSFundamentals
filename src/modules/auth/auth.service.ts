@@ -1,5 +1,3 @@
-import { UserEntity } from '@/modules/user/entity/user.entity';
-import { UserService } from '@/modules/user/user.service';
 import { MailerService } from '@nestjs-modules/mailer';
 import {
   Injectable,
@@ -11,6 +9,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { AuthRegisterDTO } from './dto/authRegister.dto';
+import { UserService } from '../user/user.service';
+import { UserEntity } from '../user/entity/user.entity';
 
 interface IToken {
   accessToken: string;
@@ -130,6 +130,8 @@ export class AuthService {
       if (isNaN(id)) throw new UnauthorizedException('Token inválido.');
 
       password = await this.userService.createHashPassword(password);
+      // const salt = await bcrypt.genSalt();
+      // password = await bcrypt.hash(password, salt);
 
       await this.userRepository.update({ id }, { password });
       const user = await this.userService.show(id);
@@ -141,6 +143,7 @@ export class AuthService {
   }
 
   async register(data: AuthRegisterDTO) {
+    delete data.role;
     const user = await this.userService.create(data);
     return this.createToken(user);
   }
