@@ -17,15 +17,14 @@ import {
   FileInterceptor,
   FilesInterceptor,
 } from '@nestjs/platform-express';
+import { User } from '../../decorators/user.decorator';
+import { AuthGuard } from '../../guards/auth.guard';
+import { FileService } from '../file/file.service';
 import { AuthService, IToken } from './auth.service';
 import { AuthForgetDTO } from './dto/authForget.dto';
 import { AuthLoginDTO } from './dto/authLogin.dto';
 import { AuthRegisterDTO } from './dto/authRegister.dto';
 import { AuthResetDTO } from './dto/authReset.dto';
-import { join } from 'path';
-import { FileService } from '../file/file.service';
-import { AuthGuard } from '../../guards/auth.guard';
-import { User } from '../../decorators/user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -78,16 +77,9 @@ export class AuthController {
     )
     photo: Express.Multer.File,
   ) {
-    const path = join(
-      __dirname,
-      '..',
-      '..',
-      'storage',
-      'photoUser',
-      `photo-${user.id}.${photo.mimetype.split('/')[1]}`,
-    );
+    const fileName = `photo-${user.id}.${photo.mimetype.split('/')[1]}`;
     try {
-      await this.fileService.upload(photo, path);
+      await this.fileService.upload(photo, fileName);
     } catch (error) {
       throw new BadRequestException(`Error to upload photo: ${error}`);
     }
