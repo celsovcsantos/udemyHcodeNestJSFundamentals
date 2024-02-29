@@ -25,6 +25,7 @@ import { AuthForgetDTO } from './dto/authForget.dto';
 import { AuthLoginDTO } from './dto/authLogin.dto';
 import { AuthRegisterDTO } from './dto/authRegister.dto';
 import { AuthResetDTO } from './dto/authReset.dto';
+import { UserEntity } from '../user/entity/user.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -55,8 +56,8 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Post('me')
-  async me(@User() user: any, @Req() { tokenPayload }: any) {
-    return { user, tokenPayload };
+  async me(@User() user: UserEntity) {
+    return user;
   }
 
   @UseInterceptors(FileInterceptor('file'))
