@@ -6,7 +6,6 @@ import {
   MaxFileSizeValidator,
   ParseFilePipe,
   Post,
-  Req,
   UploadedFile,
   UploadedFiles,
   UseGuards,
@@ -20,12 +19,12 @@ import {
 import { User } from '../../decorators/user.decorator';
 import { AuthGuard } from '../../guards/auth.guard';
 import { FileService } from '../file/file.service';
+import { UserEntity } from '../user/entity/user.entity';
 import { AuthService, IToken } from './auth.service';
 import { AuthForgetDTO } from './dto/authForget.dto';
 import { AuthLoginDTO } from './dto/authLogin.dto';
 import { AuthRegisterDTO } from './dto/authRegister.dto';
 import { AuthResetDTO } from './dto/authReset.dto';
-import { UserEntity } from '../user/entity/user.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -64,7 +63,7 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('photo')
   async uploadPhoto(
-    @User() user: any,
+    @User() user: UserEntity,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
