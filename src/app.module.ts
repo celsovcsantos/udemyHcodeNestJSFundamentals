@@ -14,7 +14,12 @@ import { UserModule } from './modules/user/user.module';
 @Module({
   //imports: [forwardRef(() => UserModule), forwardRef(() => AuthModule)],
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      envFilePath:
+        process.env.ENV === 'TEST'
+          ? `${__dirname}/../../.env.test`
+          : `${__dirname}/../../.env`,
+    }),
     ThrottlerModule.forRoot([
       {
         //configuração de limitação de requisições (limit) por tempo (ttl)
